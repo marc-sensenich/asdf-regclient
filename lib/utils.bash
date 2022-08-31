@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for regclient.
 GH_REPO="https://github.com/regclient/regclient"
+PLUGIN_NAME="asdf-regclient"
 
 # detect the tool name
 __dirname="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,7 +11,7 @@ TOOL_NAME="$(basename "$(dirname "${__dirname}")")"
 TOOL_TEST="${TOOL_NAME} --help"
 
 fail() {
-  echo -e "asdf-regclient: $*"
+  echo -e "${PLUGIN_NAME}: $*"
   exit 1
 }
 
@@ -34,8 +34,6 @@ list_github_tags() {
 }
 
 list_all_versions() {
-  # TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-  # Change this function if regclient has other means of determining installable versions.
   list_github_tags
 }
 
@@ -46,7 +44,6 @@ download_release() {
   platform="$(get_platform)"
   arch="$(get_arch)"
 
-  # TODO: Adapt the release URL convention for regclient
   url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${platform}-${arch}"
   if [ "$platform" == "windows" ]; then
     url="${release_file}.exe"
@@ -62,16 +59,14 @@ install_version() {
   local install_path="${3%/bin}/bin"
 
   if [ "$install_type" != "version" ]; then
-    fail "asdf-regclient supports release installs only"
+    fail "${PLUGIN_NAME} supports release installs only"
   fi
 
-  echo "ASDF_DOWNLOAD_PATH: ${ASDF_DOWNLOAD_PATH}"
   (
     mkdir -p "$install_path"
     cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
     chmod +x "$install_path/$TOOL_NAME"
 
-    # TODO: Assert regclient executable exists.
     local tool_cmd
     tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
     test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
