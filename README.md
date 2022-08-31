@@ -16,35 +16,37 @@
 
 # Dependencies
 
-**TODO: adapt this section**
-
-- `bash`, `curl`, `tar`: generic POSIX utilities.
-- `SOME_ENV_VAR`: set this environment variable in your shell config to load the correct version of tool x.
+- `bash` and `curl`: generic POSIX utilities.
 
 # Install
 
-Plugin:
+## Plugin
+
+For installation you'll specify one of `regctl`, `regsync`, or `regbot` which correspond to the CLI tools published in https://github.com/regclient/regclient.
 
 ```shell
-asdf plugin add regclient
-# or
-asdf plugin add regclient https://github.com/marc-sensenich/asdf-regclient.git
+asdf plugin add regctl https://github.com/marc-sensenich/asdf-regclient.git
+asdf plugin add regsync https://github.com/marc-sensenich/asdf-regclient.git
+asdf plugin add regbot https://github.com/marc-sensenich/asdf-regclient.git
 ```
 
-regclient:
+## regclient tools
+
+Adjust `regctl` for the desired tool you've installed
 
 ```shell
+
 # Show all installable versions
-asdf list-all regclient
+asdf list-all regctl
 
 # Install specific version
-asdf install regclient latest
+asdf install regctl latest
 
 # Set a version globally (on your ~/.tool-versions file)
-asdf global regclient latest
+asdf global regctl latest
 
 # Now regclient commands are available
-regclient --help
+regctl --help
 ```
 
 Check [asdf](https://github.com/asdf-vm/asdf) readme for more instructions on how to
@@ -52,7 +54,7 @@ install & manage versions.
 
 # Contributing
 
-Contributions of any kind welcome! See the [contributing guide](contributing.md).
+Contributions of any kind welcome! See the [contributing guide](CONTRIBUTING.md).
 
 [Thanks goes to these contributors](https://github.com/marc-sensenich/asdf-regclient/graphs/contributors)!
 

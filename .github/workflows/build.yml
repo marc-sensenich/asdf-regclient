@@ -14,9 +14,14 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+        tool:
+          - regctl
+          - regsync
+          - regbot
     runs-on: ${{ matrix.os }}
     steps:
       - name: asdf_plugin_test
         uses: asdf-vm/actions/plugin-test@v1
         with:
-          command: regclient --help
+          plugin: ${{ matrix.tool }}
+          command: ${{ matrix.tool }} --help

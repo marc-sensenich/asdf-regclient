@@ -4,11 +4,14 @@ set -euo pipefail
 
 # TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for regclient.
 GH_REPO="https://github.com/regclient/regclient"
-TOOL_NAME="regclient"
-TOOL_TEST="regclient --help"
+
+# detect the tool name
+__dirname="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TOOL_NAME="$(basename "$(dirname "${__dirname}")")"
+TOOL_TEST="${TOOL_NAME} --help"
 
 fail() {
-  echo -e "asdf-$TOOL_NAME: $*"
+  echo -e "asdf-regclient: $*"
   exit 1
 }
 
@@ -37,12 +40,17 @@ list_all_versions() {
 }
 
 download_release() {
-  local version filename url
+  local version filename url platform arch
   version="$1"
   filename="$2"
+  platform="$(get_platform)"
+  arch="$(get_arch)"
 
   # TODO: Adapt the release URL convention for regclient
-  url="$GH_REPO/archive/v${version}.tar.gz"
+  url="$GH_REPO/releases/download/v${version}/${TOOL_NAME}-${platform}-${arch}"
+  if [ "$platform" == "windows" ]; then
+    url="${release_file}.exe"
+  fi
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -54,12 +62,14 @@ install_version() {
   local install_path="${3%/bin}/bin"
 
   if [ "$install_type" != "version" ]; then
-    fail "asdf-$TOOL_NAME supports release installs only"
+    fail "asdf-regclient supports release installs only"
   fi
 
+  echo "ASDF_DOWNLOAD_PATH: ${ASDF_DOWNLOAD_PATH}"
   (
     mkdir -p "$install_path"
     cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+    chmod +x "$install_path/$TOOL_NAME"
 
     # TODO: Assert regclient executable exists.
     local tool_cmd
@@ -71,4 +81,33 @@ install_version() {
     rm -rf "$install_path"
     fail "An error occurred while installing $TOOL_NAME $version."
   )
+}
+
+get_platform() {
+  local -r kernel="$(uname -s)"
+  if [[ ${OSTYPE} == "msys" || ${kernel} == "CYGWIN"* || ${kernel} == "MINGW"* ]]; then
+    echo windows
+  else
+    uname | tr '[:upper:]' '[:lower:]'
+  fi
+}
+
+get_arch() {
+  local -r machine="$(uname -m)"
+  local -r upper_toolname=$(echo "${toolname//-/_}" | tr '[:lower:]' '[:upper:]')
+  local -r tool_specific_arch_override="ASDF_HASHICORP_OVERWRITE_ARCH_${upper_toolname}"
+
+  OVERWRITE_ARCH=${!tool_specific_arch_override:-${ASDF_HASHICORP_OVERWRITE_ARCH:-"false"}}
+
+  if [[ ${OVERWRITE_ARCH} != "false" ]]; then
+    echo "${OVERWRITE_ARCH}"
+  elif [[ ${machine} == "arm64" ]] || [[ ${machine} == "aarch64" ]]; then
+    echo "arm64"
+  elif [[ ${machine} == *"arm"* ]] || [[ ${machine} == *"aarch"* ]]; then
+    echo "arm"
+  elif [[ ${machine} == *"386"* ]]; then
+    echo "386"
+  else
+    echo "amd64"
+  fi
 }
